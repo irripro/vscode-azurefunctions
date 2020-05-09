@@ -45,7 +45,15 @@ export class FunctionListStep extends AzureWizardPromptStep<IFunctionWizardConte
             const language: ProjectLanguage = nonNullProp(context, 'language');
             const version: FuncVersion = nonNullProp(context, 'version');
             const templates: IFunctionTemplate[] = await ext.templateProvider.getFunctionTemplates(context, context.projectPath, language, version, TemplateFilter.All);
-            const foundTemplate: IFunctionTemplate | undefined = templates.find((t: IFunctionTemplate) => t.id === options.templateId);
+            const foundTemplate: IFunctionTemplate | undefined = templates.find((t: IFunctionTemplate) => {
+                if (options.templateId) {
+                    const actualId: string = t.id.toLowerCase();
+                    const expectedId: string = options.templateId.toLowerCase();
+                    return actualId === expectedId || actualId === `${expectedId}-${language.toLowerCase()}`;
+                } else {
+                    return false;
+                }
+            });
             if (foundTemplate) {
                 context.functionTemplate = foundTemplate;
             } else {

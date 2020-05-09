@@ -41,7 +41,7 @@ export class NewProjectLanguageStep extends AzureWizardPromptStep<IProjectWizard
     public async prompt(context: IProjectWizardContext): Promise<void> {
         const previewDescription: string = localize('previewDescription', '(Preview)');
         // Only display 'supported' languages that can be debugged in VS Code
-        const languagePicks: IAzureQuickPickItem<ProjectLanguage | undefined>[] = [
+        let languagePicks: IAzureQuickPickItem<ProjectLanguage | undefined>[] = [
             { label: ProjectLanguage.JavaScript, data: ProjectLanguage.JavaScript },
             { label: ProjectLanguage.TypeScript, data: ProjectLanguage.TypeScript },
             { label: ProjectLanguage.CSharp, data: ProjectLanguage.CSharp },
@@ -52,7 +52,13 @@ export class NewProjectLanguageStep extends AzureWizardPromptStep<IProjectWizard
 
         languagePicks.push({ label: localize('viewSamples', '$(link-external) View sample projects'), data: undefined, suppressPersistence: true });
 
-        const options: QuickPickOptions = { placeHolder: localize('selectFuncTemplate', 'Select a language for your function project') };
+        if (context.languageFilter) {
+            languagePicks = languagePicks.filter(p => {
+                return p.data !== undefined && context.languageFilter?.test(p.data);
+            });
+        }
+
+        const options: QuickPickOptions = { placeHolder: localize('selectLanguage', 'Select a language') };
         const result: ProjectLanguage | undefined = (await ext.ui.showQuickPick(languagePicks, options)).data;
         if (result === undefined) {
             await openUrl('https://aka.ms/AA4ul9b');
